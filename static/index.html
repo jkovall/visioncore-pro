@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionCore Pro - Пошук товарів по фотографіям</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-top">
+                <h1>🔍 VisionCore Pro</h1>
+                <div class="auth-buttons" id="authButtonsContainer">
+                    <button id="loginBtn" class="btn btn-small">Вхід</button>
+                    <button id="registerBtn" class="btn btn-small">Реєстрація</button>
+                </div>
+                <div class="user-info" id="userInfoContainer" style="display: none;">
+                    <span id="userDisplay"></span>
+                    <button id="logoutBtn" class="btn btn-small">Вихід</button>
+                </div>
+            </div>
+            <p class="subtitle">Знаходьте і купуйте схожі товари завантажуючи фотографію</p>
+        </header>
+
+        <!-- Login Modal -->
+        <div id="loginModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Вхід в обліковий запис</h2>
+                    <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+                </div>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email:</label>
+                        <input type="email" id="loginEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Пароль:</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    <div id="loginError" class="error-message" style="display: none;"></div>
+                    <button type="submit" class="btn btn-primary">Увійти</button>
+                </form>
+                <p class="form-footer">Немаєте облікового запису? <a href="#" onclick="switchToRegister()">Зареєструватися</a></p>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="registerModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Реєстрація нового облікового запису</h2>
+                    <button class="modal-close" onclick="closeRegisterModal()">&times;</button>
+                </div>
+                <form id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="registerUsername">Ім'я користувача:</label>
+                        <input type="text" id="registerUsername" name="username" minlength="3" maxlength="50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email:</label>
+                        <input type="email" id="registerEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerFullName">Повне ім'я (необов'язково):</label>
+                        <input type="text" id="registerFullName" name="full_name" maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Пароль:</label>
+                        <input type="password" id="registerPassword" name="password" minlength="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPasswordConfirm">Повторіть пароль:</label>
+                        <input type="password" id="registerPasswordConfirm" name="password_confirm" minlength="6" required>
+                    </div>
+                    <div id="registerError" class="error-message" style="display: none;"></div>
+                    <button type="submit" class="btn btn-primary">Зареєструватися</button>
+                </form>
+                <p class="form-footer">Вже маєте обліковий запис? <a href="#" onclick="switchToLogin()">Увійти</a></p>
+            </div>
+        </div>
+
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p id="uploadText">Натисніть тут або перетягніть зображення товару</p>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <small id="fileInfo"></small>
+                </div>
+
+                <div class="search-query">
+                    <label for="searchQuery">Введіть назву або опис товару (не обов'язково):</label>
+                    <input type="text" id="searchQuery" placeholder="Приклад: ноутбук ASUS, iPhone чорний, бездротові навушники, смарт-годинник, портативна колонка">
+                </div>
+
+                <button id="searchBtn" class="btn btn-primary" disabled>
+                    🔍 Почати пошук товарів
+                </button>
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Аналіз фотографії і пошук товарів на маркетплейсах...</p>
+            </div>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="results-section" style="display: none;">
+                <h2>Знайдені товари</h2>
+                
+                <div class="image-preview">
+                    <h3>Ваша фотографія</h3>
+                    <img id="previewImage" alt="Попередній перегляд">
+                </div>
+
+                <div class="category-info">
+                    <h3>Характеристики фотографії</h3>
+                    <div id="categoryDetails"></div>
+                </div>
+
+                <div class="search-results">
+                    <h3>Товари на продаж</h3>
+                    <div class="results-grid" id="resultsGrid">
+                        <!-- Результати будуть вставлені тут -->
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="newSearchBtn" class="btn btn-secondary">← Новий пошук</button>
+                </div>
+            </section>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </main>
+
+        <footer class="footer">
+            <p>VisionCore Pro v1.0 | Розумний пошук товарів по фотографіям за допомогою штучного інтелекту</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
